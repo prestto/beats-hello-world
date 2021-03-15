@@ -1,0 +1,41 @@
+
+version: '3.6'
+services:
+  elasticsearch:
+    image: elasticsearch:7.11.1
+    container_name: elasticsearch
+    environment:
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
+      - discovery.type=single-node
+    ports: ['9200:9200']
+    volumes:
+      - ./es_data:/usr/share/elasticsearch/data
+
+  kibana:
+    image: kibana:7.11.1
+    container_name: kibana
+    ports: ['5601:5601']
+    depends_on: ['elasticsearch']
+
+  logstash:
+    image: logstash:7.11.1
+    container_name: logstash
+    volumes:
+      - ./scrape_logs.conf:/usr/share/logstash/config/scrape_logs.conf
+    depends_on: ['elasticsearch']
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:7.11.2
+    container_name: filebeat
+    user: root
+    command: --strict.perms=false -e
+    volumes:
+      - ./filebeat.yml:/usr/share/filebeat/filebeat.yml
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ./beat_test:/usr/share/filebeat/scrape_logs
+    depends_on: ['elasticsearch', 'kibana']
+
+volumes:
+  es_data:
