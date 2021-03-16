@@ -22,7 +22,7 @@ services:
     image: logstash:7.11.1
     container_name: logstash
     volumes:
-      - ./scrape_logs.conf:/usr/share/logstash/config/scrape_logs.conf
+      - ./pipeline:/usr/share/logstash/pipeline
     depends_on: ['elasticsearch']
 
   filebeat:
